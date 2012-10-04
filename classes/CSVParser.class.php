@@ -28,10 +28,10 @@ class CSVParser
     private $_offset = 0;
     private $_header;
 
-    public function csv_import($filepath = null)
+    public function csv_import($file = null)
     {
-        if (($handle = @fopen($filepath, "r")) === FALSE)
-            exit('<h3>The file "' . $filepath . '" does not exist!!</h1>');
+        if (($handle = @fopen($file, "r")) === FALSE)
+            exit('<h3>The file "' . $file . '" does not exist!!</h1>');
 
         $data = array();
 
@@ -87,14 +87,6 @@ class CSVParser
 
     public function csv_table()
     {
-        echo '
-		<style type="text/css" media="screen">
-		table { background: #000; }
-		th { background: #555; color: #FFF; padding:2px 8px;}
-		td { background: #FFF; }
-		</style>
-		';
-
         $dataRows = $this->get_cvs_rows();
         $dataHeaders = $this->get_csv_headers();
         $dataColumns = $this->get_sql_columns();
@@ -102,31 +94,31 @@ class CSVParser
         $totalHeaders = count($dataHeaders);
 
 
-        $html = '<table border="0" cellspacing="1" cellpadding="3" id="csv">';
+        $html = '<table class="table table-striped table-bordered table-condensed">';
+        $html.= '<thead>';
         $html.= '<tr>';
-        $html.= '<th class="heading">&nbsp;</th>';
+        $html.= '<th>&nbsp;</th>';
         foreach ($dataHeaders as $th => $header):
             $html.= '<th>';
-            $html.= '<input name="' . $header[0] . '" id="' . $header[0] . '" value="1" type="checkbox" class="check" style="padding:10px !important;" />';
-            $html.= '<label for="' . $header[0] . '">';
+            $html.= '<input name="' . $header[0] . '" id="' . $header[0] . '" value="1" type="checkbox" /> ';
+            #$html.= '<label for="' . $header[0] . '">';
             foreach ($header as $title):
-                $html.= $title . '<br />';
+                $html.= $title . ' ';
             endforeach;
-            $html.= '</label>';
+            #$html.= '</label>';
             $html.= '</th>';
         endforeach;
         $html.= '</tr>';
-
-
+        $html.= '<thead>';
+        $html.= '<tbody>';
         for ($i = 1; $i <= $totalRows; $i++):
-            $html.= '<tr ' . ($i == 1 ? 'class="first"' : null) . '>';
-            $html.= '<th class="heading">&nbsp;&nbsp;' . ($i) . '</th>';
+            $html.= '<tr>';
+            $html.= '<th>' . ($i) . '</th>';
             for ($j = 1; $j <= $totalHeaders; $j++):
                 $values = null;
                 foreach ($dataHeaders[$j - 1] as $k => $v):
                     $values.= ($k > 0) ? $this->_separator[$j - 1] : null;
-                    //$values.= $dataRows[$i - 1][@$v];
-                $v;
+                    $values.= $dataRows[$i - 1][@$v];
                 endforeach;
                 $html.= '<td>' . $values . '</td>';
 
@@ -136,6 +128,7 @@ class CSVParser
 
             $this->result($this->_result);
         endfor;
+        $html.= '</tbody>';
         $html.= '</table>';
 
         $this->_table = $html;

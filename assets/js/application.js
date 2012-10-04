@@ -27,34 +27,30 @@ $(function() {
 
 
     // Valums - Ajax upload
-    var valums_button = $("button[id='csv_import']");
-    var valums_submit = $("form[id='csv_submit']");
-    var valums_uploader = new AjaxUpload(valums_button, 
+    var valums_button = $("[id='csv_import']");
+    new AjaxUpload(valums_button, 
     {
         name: 'uploadfile',
-        action: 'upload.php',
+        action: 'index.php',
         autoSubmit: true,
         responseType: 'json',
         onComplete: function(file, json) {
-            if (json.status === "error") {
-                _message = '<h3>Unable to load file: ' + file + '</h3>';
-                _timeout = 2000;
-            } else {
-                _message = '<h3>Loading file: ' + file + '</h3>';
-                _timeout = 1500;
-                $("[name='spreadsheet']").val(json.fileName);
-            }
-
             $.blockUI({ 
-                message: _message
+                message: json.message
             });
             setTimeout(function() {
                 $.unblockUI({
                     onUnblock: function(){ 
-                        if (json.status === "ok") valums_submit.submit();
+                        if (json.status === "ok"){
+                            // Create the form on the fly
+                            form = '<form action="importing.php" method="post"><input name="spreadsheet" value="' + json.file_name + '" /></form>';
+                            $(form).appendTo("body").submit();
+
+                            //$('<form/>').attr('action','form2.html').submit();
+                        }
                     } 
                 }); 
-            }, _timeout);
+            }, 2000);
         }
     });
 

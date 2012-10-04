@@ -14,49 +14,56 @@
  * */
 class Upload
 {
-    // Upload Limit (Default 5 = 5MB)
-    const LIMIT_UPLOAD = 5;
+    const LIMIT_UPLOAD = 5; // Upload Limit (Default 5 = 5MB)
 
-    // Constructor
-    function Upload()
+    /**
+     * Constructor
+     *
+     * @param array $file File loaded via Ajax
+     */
+    function Upload($file = null)
     {
-        if (!isset($_FILES['uploadfile'])):
+        if (is_null($file)):
             exit;
         else:
-            $csv_file = $_FILES['uploadfile'];
+            $name = $file['name'];
+            $size = $file['size'];
+            $erro = $file['error'];
+            $temp = $file['tmp_name'];
 
-            $name = $csv_file['name'];
-            $size = $csv_file['size'];
-            $erro = $csv_file['error'];
-            $temp = $csv_file['tmp_name'];
-
-            // Upload OK
+            // No error during load
             if ($erro == 0):
-                // List of allowed extensions
-                $allowedExtensions = array('.xls', '.xlsx', '.csv');
+                // Checks if the file size is within the allowable limit
+                if ($size < (self::LIMIT_UPLOAD * 1000000)):
+                    // List of allowed extensions
+                    $allowedExtensions = array('.xls', '.xlsx', '.csv');
 
-                // Picks up at the file extension
-                $extension = strrchr(strtolower(stripslashes($name)), '.');
+                    // Picks up at the file extension
+                    $extension = strrchr(strtolower(stripslashes($name)), '.');
 
-                // Checks whether the uploaded file is a spreadsheet
-                if (in_array($extension, $allowedExtensions)):
-                    // Checks if the file size is within the allowable limit
-                    if ($size < (self::LIMIT_UPLOAD * 1000000)):
+                    // Checks whether the uploaded file is a spreadsheet
+                    if (in_array($extension, $allowedExtensions)):
+
+                        // Converts all special characters
                         $name = self::normalize($name);
+
+                        // Generates a new filename
                         $name_rand = rand(0000, 9999) . basename($name);
 
                         // Move the file to the folder: storage
                         if (move_uploaded_file($temp, 'storage/' . $name_rand)):
-                            echo '{ status: "ok", fileName: "' . $name_rand . '" }';
+                            echo '{ status: "ok" , message: "<h3>Loading file: ' . $name . '</h3>" , file_name: "' . $name_rand . '" }';
                         else:
-                            echo '{ status: "error" }';
+                            echo '{ status: "error" , message: "<h3>Could not load file: ' . $name . '</h3>" }';
                         endif;
+                    else:
+                        echo '{ status: "error" , message: "<h3>File type not supported</h3>" }';
                     endif;
                 else:
-                    echo '{ status: "error" }';
+                    echo '{ status: "error" , message: "<h3>File size limit exceeded</h3>" }';
                 endif;
             else:
-                echo '{ status: "error" }';
+                echo '{ status: "error" , message: "<h3>Could not load file</h3>" }';
             endif;
         endif;
     }
@@ -106,6 +113,3 @@ class Upload
     }
 
 }
-
-// Starting upload
-new Upload();
