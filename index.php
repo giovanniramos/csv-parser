@@ -19,7 +19,7 @@ endif;
         <div class="hero-unit" style="margin-top: 110px;">
             <h1>Import to the Database</h1>
             <p>Click "Choose File," locate the .CSV and finally click "Open"</p>
-            <p><button id="csvparser" title="Select" class="btn btn-primary">Choose File</button></p>
+            <p><button id="csvparser" title="Choose File" class="btn btn-primary">Choose File</button></p>
         </div>
 
         <!-- Modal - Twitter Bootstrap -->
@@ -30,11 +30,10 @@ endif;
             </div>
             <div class="modal-body"></div>
             <div class="modal-footer">
-                <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
-                <button id="csvsave" class="btn btn-primary">Save changes</button>
+                <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel and close</button>
+                <button id="csvsave" class="btn btn-primary">Save in Database</button>
             </div>
         </div>
-
 
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.min.js"></script>
         <script>window.jQuery || document.write('<script src="assets/js/jquery-1.8.0.min.js"><\/script>')</script>

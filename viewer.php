@@ -20,7 +20,7 @@ if (isset($_GET['spreadsheet'])):
     // Result for viewing
     $cvs_result = $csvparser->get_csv_table();
 
-    echo 'sql_result: <pre>', print_r($sql_result, true), '</pre>';
-    echo 'cvs_result: ', print_r($cvs_result, true), '';
+    echo '<pre style="height: 150px; overflow: auto;">', print_r($sql_result, true), '</pre>';
+    echo '', print_r($cvs_result, true), '';
 endif;
 ?>

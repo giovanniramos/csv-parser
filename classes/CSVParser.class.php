@@ -119,7 +119,7 @@ class CSVParser
                 $values = null;
                 foreach ($dataHeaders[$j - 1] as $k => $v):
                     $values.= ($k > 0) ? $this->_separator[$j - 1] : null;
-                    $values.= $dataRows[$i - 1][$v];
+                    $values.= isset($dataRows[$i - 1][$v]) ? $dataRows[$i - 1][$v] : null;
                     $values = trim($values);
                 endforeach;
                 $html.= '<td>' . $values . '</td>';

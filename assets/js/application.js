@@ -26,7 +26,7 @@ $(function() {
     }; 
       
     // Valums - Ajax upload
-    new AjaxUpload($("[id='csvparser']"), 
+    new AjaxUpload($('[id="csvparser"]'), 
     {
         name: 'uploadfile',
         action: 'index.php',
@@ -48,17 +48,22 @@ $(function() {
             }, 2000);
         }
     });
-    $('#viewer')
+
+    // Modal Config
+    $('.modal')
     .modal({
-        backdrop: true,
         keyboard: true,
         remote: 'viewer.php?spreadsheet=1234planilha.csv'
     })
     .css({
-       'height': function() { return ($(document).height() * .8) + 'px'; },
-       'width': function() { return ($(document).width() * .9) + 'px'; },
-       'margin-top': function() { return -($(this).height() / 2); },
-       'margin-left': function() { return -($(this).width() / 2); }
+        'height': function() { return ($(document).height() * .8) + 'px'; },
+        'width': function() { return ($(document).width() * .9) + 'px'; },
+        'margin-top': function() { return -($(this).height() / 2); },
+        'margin-left': function() { return -($(this).width() / 2); }
+    });
+    $('.modal-body')
+    .css({
+        'min-height' : function() { return ($('.modal').height() - 140) + 'px'; },
     });
 });
 
