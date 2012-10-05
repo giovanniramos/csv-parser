@@ -63,16 +63,17 @@ class CSVParser
             // No limits and no offset
             ( $this->_limit == 0 && $this->_offset == 0)
             ) :
+                if (!isset($data[1])) continue;
                 foreach ($data[1] as $k => $v):
                     $n = array_search($data[1][$k], $data[0]);
                     $v = trim($fileline[$n]);
                     $v = iconv('ISO-8859-1', 'UTF-8', $v);
-                    $v = mb_strtoupper($v, "UTF-8");
+                    #$v = mb_strtoupper($v, "UTF-8");
                     $v = str_replace('""', '"', $v);
                     $v = preg_replace("~[\s]+~", " ", $v);
                     $v = preg_replace("~^\"(.*)\"$~sim", "$1", $v);
 
-                    $rows[$data[1][$k]] = $v == '' ? '&nbsp;' : $v;
+                    $rows[$data[1][$k]] = empty($v) ? null : $v;
                 endforeach;
                 $this->cvs_rows($rows);
             endif;
@@ -94,13 +95,13 @@ class CSVParser
         $totalHeaders = count($dataHeaders);
 
 
-        $html = '<table class="table table-striped table-bordered table-condensed">';
+        $html = '<table class="table table-striped table-bordered table-condensed table-hover">';
         $html.= '<thead>';
         $html.= '<tr>';
         $html.= '<th>&nbsp;</th>';
         foreach ($dataHeaders as $th => $header):
             $html.= '<th>';
-            $html.= '<input name="' . $header[0] . '" id="' . $header[0] . '" value="1" type="checkbox" /> ';
+            #$html.= '<label class="checkbox inline"><input name="' . $header[0] . '" id="' . $header[0] . '" value="1" type="checkbox" /></label> ';
             #$html.= '<label for="' . $header[0] . '">';
             foreach ($header as $title):
                 $html.= $title . ' ';
@@ -118,7 +119,8 @@ class CSVParser
                 $values = null;
                 foreach ($dataHeaders[$j - 1] as $k => $v):
                     $values.= ($k > 0) ? $this->_separator[$j - 1] : null;
-                    $values.= $dataRows[$i - 1][@$v];
+                    $values.= $dataRows[$i - 1][$v];
+                    $values = trim($values);
                 endforeach;
                 $html.= '<td>' . $values . '</td>';
 

@@ -24,11 +24,9 @@ $(function() {
         },
         showOverlay: true
     }; 
-
-
+      
     // Valums - Ajax upload
-    var valums_button = $("[id='csv_import']");
-    new AjaxUpload(valums_button, 
+    new AjaxUpload($("[id='csvparser']"), 
     {
         name: 'uploadfile',
         action: 'index.php',
@@ -42,16 +40,25 @@ $(function() {
                 $.unblockUI({
                     onUnblock: function(){ 
                         if (json.status === "ok"){
-                            // Create the form on the fly
-                            form = '<form action="importing.php" method="post"><input name="spreadsheet" value="' + json.file_name + '" /></form>';
-                            $(form).appendTo("body").submit();
-
-                            //$('<form/>').attr('action','form2.html').submit();
+                            //window.showModalDialog('viewer.php?spreadsheet=' + json.file_name, 'win','dialogHeight:800px;dialogWidth:600px;help:no;status:no;scroll:no;menubar=no;resize:no;resizable=no;center=yes;');
+                            window.showModalDialog('viewer.php?spreadsheet=' + json.file_name, 'win', 'dialogWidth:800px;dialogHeight:600px;help:no;status=no;scroll=no;menubar=no;resizable=no;center=yes');
                         }
                     } 
                 }); 
             }, 2000);
         }
     });
-
+    $('#viewer')
+    .modal({
+        backdrop: true,
+        keyboard: true,
+        remote: 'viewer.php?spreadsheet=1234planilha.csv'
+    })
+    .css({
+       'height': function() { return ($(document).height() * .8) + 'px'; },
+       'width': function() { return ($(document).width() * .9) + 'px'; },
+       'margin-top': function() { return -($(this).height() / 2); },
+       'margin-left': function() { return -($(this).width() / 2); }
+    });
 });
+
