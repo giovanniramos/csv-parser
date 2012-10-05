@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Upload
+ * CSVUpload
  * 
  * @category CSV
  * @package CSVParser
@@ -12,7 +12,7 @@
  * @license http://opensource.org/licenses/gpl-3.0.html GNU Public License
  *
  * */
-class Upload
+class CSVUpload
 {
     const LIMIT_UPLOAD = 5; // Upload Limit (Default 5 = 5MB)
 
@@ -21,13 +21,15 @@ class Upload
      *
      * @param array $file File loaded via Ajax
      */
-    function Upload($file = null)
+
+    function CSVUpload($file = null)
     {
         if (is_null($file)):
             exit;
         else:
             $name = $file['name'];
             $size = $file['size'];
+            $type = $file['type'];
             $erro = $file['error'];
             $temp = $file['tmp_name'];
 
@@ -35,24 +37,24 @@ class Upload
             if ($erro == 0):
                 // Checks if the file size is within the allowable limit
                 if ($size < (self::LIMIT_UPLOAD * 1000000)):
-                    // List of allowed extensions
-                    $allowedExtensions = array('.xls', '.xlsx', '.csv');
-
                     // Picks up at the file extension
                     $extension = strrchr(strtolower(stripslashes($name)), '.');
 
+                    // List of mime types supported
+                    $mime_supported = array('text/comma-separated-values', 'text/csv', 'application/csv', 'application/excel', 'application/vnd.ms-excel', 'application/vnd.msexcel', 'text/anytext');
+
                     // Checks whether the uploaded file is a spreadsheet
-                    if (in_array($extension, $allowedExtensions)):
+                    if ($extension == '.csv' && in_array($type, $mime_supported)):
 
                         // Converts all special characters
                         $name = self::normalize($name);
 
                         // Generates a new filename
-                        $name_rand = rand(0000, 9999) . basename($name);
+                        $new_name = rand(0000, 9999) . basename($name);
 
                         // Move the file to the folder: storage
-                        if (move_uploaded_file($temp, 'storage/' . $name_rand)):
-                            echo '{ status: "ok" , message: "<h3>Loading file: ' . $name . '</h3>" , file_name: "' . $name_rand . '" }';
+                        if (move_uploaded_file($temp, 'storage/' . $new_name)):
+                            echo '{ status: "ok" , message: "<h3>Loading file: ' . $name . '</h3>" , file_name: "' . $new_name . '" }';
                         else:
                             echo '{ status: "error" , message: "<h3>Could not load file: ' . $name . '</h3>" }';
                         endif;
