@@ -6,10 +6,10 @@
  * @category CSV
  * @package CSVParser
  * @author Giovanni Ramos <giovannilauro@gmail.com>
- * @copyright 2012, Giovanni Ramos
+ * @copyright 2012-2014, Giovanni Ramos
  * @since 2012-09-27 
+ * @license http://opensource.org/licenses/MIT
  * @version 1.0
- * @license http://opensource.org/licenses/gpl-3.0.html GNU Public License
  *
  * */
 class CSVParser
@@ -30,41 +30,45 @@ class CSVParser
 
     public function csv_import($file = null)
     {
-        if (($handle = @fopen($file, "r")) === FALSE)
+        if (($handle = @fopen($file, "r")) === FALSE) {
             exit('<h3>The file "' . $file . '" does not exist!!</h1>');
+        }
 
         $data = array();
 
         $this->csv_range($this->_limit, $this->_offset);
 
         $headline = fgetcsv($handle, self::CSV_LENGTH, self::CSV_DELIMITER);
-        foreach ($headline as $title):
+        foreach ($headline as $title) {
             $data[0][] = $title = strtoupper(preg_replace('/[^[:alnum:]\s]/', '', $title));
 
             // With a filter of columns
-            if (is_array($this->get_csv_headers())):
+            if (is_array($this->get_csv_headers())) {
                 if ($this->filterHeading($title)):
                     $data[1][] = $title;
                 endif;
-            else:
+            } else {
                 $data[1][] = $title;
-            endif;
-        endforeach;
+            }
+        }
 
 
         $rows = null;
         $index = 1;
-        while (($fileline = fgetcsv($handle, self::CSV_LENGTH, self::CSV_DELIMITER)) !== FALSE):
+        while (($fileline = fgetcsv($handle, self::CSV_LENGTH, self::CSV_DELIMITER)) !== FALSE) {
             if (
             // With limit and offset
-            (($this->_limit != 0 && $this->_offset != 0) && $index >= $this->_limit && $index <= $this->_offset) ||
-            // With limit and without offset
-            (($this->_limit != 0 && $this->_offset == 0) && $index <= $this->_limit) ||
-            // No limits and no offset
-            ( $this->_limit == 0 && $this->_offset == 0)
-            ) :
-                if (!isset($data[1])) continue;
-                foreach ($data[1] as $k => $v):
+                    (($this->_limit != 0 && $this->_offset != 0) && $index >= $this->_limit && $index <= $this->_offset) ||
+                    // With limit and without offset
+                    (($this->_limit != 0 && $this->_offset == 0) && $index <= $this->_limit) ||
+                    // No limits and no offset
+                    ( $this->_limit == 0 && $this->_offset == 0)
+            ) {
+                if (!isset($data[1])) {
+                    continue;
+                }
+
+                foreach ($data[1] as $k => $v) {
                     $n = array_search($data[1][$k], $data[0]);
                     $v = trim($fileline[$n]);
                     $v = iconv('ISO-8859-1', 'UTF-8', $v);
@@ -74,11 +78,11 @@ class CSVParser
                     $v = preg_replace("~^\"(.*)\"$~sim", "$1", $v);
 
                     $rows[$data[1][$k]] = empty($v) ? null : $v;
-                endforeach;
+                }
                 $this->cvs_rows($rows);
-            endif;
+            }
             $index++;
-        endwhile;
+        }
         fclose($handle);
 
         $this->cvs_data($data);
@@ -99,37 +103,38 @@ class CSVParser
         $html.= '<thead>';
         $html.= '<tr>';
         $html.= '<th>&nbsp;</th>';
-        foreach ($dataHeaders as $th => $header):
+        foreach ($dataHeaders as $th => $header) {
             $html.= '<th>';
-            #$html.= '<label class="checkbox inline"><input name="' . $header[0] . '" id="' . $header[0] . '" value="1" type="checkbox" /></label> ';
-            #$html.= '<label for="' . $header[0] . '">';
-            foreach ($header as $title):
+//            $html.= '<label class="checkbox inline"><input name="' . $header[0] . '" id="' . $header[0] . '" value="1" type="checkbox" /></label> ';
+//            $html.= '<label for="' . $header[0] . '">';
+            foreach ($header as $title) {
                 $html.= $title . ' ';
-            endforeach;
-            #$html.= '</label>';
+            }
+//            $html.= '</label>';
             $html.= '</th>';
-        endforeach;
+        }
         $html.= '</tr>';
-        $html.= '<thead>';
+        $html.= '</thead>';
+
         $html.= '<tbody>';
-        for ($i = 1; $i <= $totalRows; $i++):
+        for ($i = 1; $i <= $totalRows; $i++) {
             $html.= '<tr>';
             $html.= '<th>' . ($i) . '</th>';
-            for ($j = 1; $j <= $totalHeaders; $j++):
+            for ($j = 1; $j <= $totalHeaders; $j++) {
                 $values = null;
-                foreach ($dataHeaders[$j - 1] as $k => $v):
+                foreach ($dataHeaders[$j - 1] as $k => $v) {
                     $values.= ($k > 0) ? $this->_separator[$j - 1] : null;
                     $values.= isset($dataRows[$i - 1][$v]) ? $dataRows[$i - 1][$v] : null;
                     $values = trim($values);
-                endforeach;
+                }
                 $html.= '<td>' . $values . '</td>';
 
                 $this->_result[$dataColumns[$j - 1]] = $values;
-            endfor;
+            }
             $html.= '</tr>';
 
             $this->result($this->_result);
-        endfor;
+        }
         $html.= '</tbody>';
         $html.= '</table>';
 
@@ -150,8 +155,9 @@ class CSVParser
 
     public function csv_headers($header = null, $separator = null)
     {
-        if (is_null($header))
+        if (is_null($header)) {
             return;
+        }
 
         $header = strtoupper($header);
         $header = preg_replace('/[^[:alnum:],\s]/', '', $header);
@@ -220,8 +226,9 @@ class CSVParser
 
     public function sql_fusion($column = null, $header = null)
     {
-        if (is_null($column) || is_null($header))
+        if (is_null($column) || is_null($header)) {
             return;
+        }
 
         $header = mb_strtoupper($header, "UTF-8");
         $this->_result[$column] = $header;
@@ -232,26 +239,26 @@ class CSVParser
         $top = sizeof($haystack) - 1;
         $bottom = 0;
 
-        while ($bottom <= $top):
-            if ($haystack[$bottom] == $needle)
+        while ($bottom <= $top) {
+            if ($haystack[$bottom] == $needle) {
                 return true;
-            else
-            if (is_array($haystack[$bottom]))
-                if ($this->in_multiarray($needle, ($haystack[$bottom])))
+            } else
+            if (is_array($haystack[$bottom])) {
+                if ($this->in_multiarray($needle, ($haystack[$bottom]))) {
                     return true;
+                }
+            }
             $bottom++;
-        endwhile;
+        }
 
         return false;
     }
 
     public function __get($key)
     {
-        if (array_key_exists($key, $this->_result)):
+        if (array_key_exists($key, $this->_result)) {
             return $this->_result[$key];
-        endif;
+        }
     }
 
 }
-
-?>

@@ -6,27 +6,29 @@
  * @category CSV
  * @package CSVParser
  * @author Giovanni Ramos <giovannilauro@gmail.com>
- * @copyright 2012, Giovanni Ramos
+ * @copyright 2012-2014, Giovanni Ramos
  * @since 2012-09-27 
+ * @license http://opensource.org/licenses/MIT
  * @version 1.0
- * @license http://opensource.org/licenses/gpl-3.0.html GNU Public License
  *
  * */
 class CSVUpload
 {
-    const LIMIT_UPLOAD = 5; // Upload Limit (Default 5 = 5MB)
+    /**
+     * Upload Limit (Default: 5 = 5MB)
+     */
+    const LIMIT_UPLOAD = 5;
 
     /**
      * Constructor
-     *
+     * 
      * @param array $file File loaded via Ajax
      */
-
-    function CSVUpload($file = null)
+    public function CSVUpload($file = null)
     {
-        if (is_null($file)):
+        if (is_null($file)) {
             exit;
-        else:
+        } else {
             $name = $file['name'];
             $size = $file['size'];
             $type = $file['type'];
@@ -34,9 +36,9 @@ class CSVUpload
             $temp = $file['tmp_name'];
 
             // No error during load
-            if ($erro == 0):
+            if ($erro == 0) {
                 // Checks if the file size is within the allowable limit
-                if ($size < (self::LIMIT_UPLOAD * 1000000)):
+                if ($size < (self::LIMIT_UPLOAD * 1000000)) {
                     // Picks up at the file extension
                     $extension = strrchr(strtolower(stripslashes($name)), '.');
 
@@ -44,7 +46,7 @@ class CSVUpload
                     $mime_supported = array('text/comma-separated-values', 'text/csv', 'application/csv', 'application/excel', 'application/vnd.ms-excel', 'application/vnd.msexcel', 'text/anytext');
 
                     // Checks whether the uploaded file is a spreadsheet
-                    if ($extension == '.csv' && in_array($type, $mime_supported)):
+                    if ($extension == '.csv' && in_array($type, $mime_supported)) {
 
                         // Converts all special characters
                         $name = self::normalize($name);
@@ -53,21 +55,21 @@ class CSVUpload
                         $new_name = rand(0000, 9999) . basename($name);
 
                         // Move the file to the folder: storage
-                        if (move_uploaded_file($temp, 'storage/' . $new_name)):
+                        if (move_uploaded_file($temp, 'storage/' . $new_name)) {
                             echo '{ status: "ok" , message: "<h3>Loading file: ' . $name . '</h3>" , file_name: "' . $new_name . '" }';
-                        else:
+                        } else {
                             echo '{ status: "error" , message: "<h3>Could not load file: ' . $name . '</h3>" }';
-                        endif;
-                    else:
+                        }
+                    } else {
                         echo '{ status: "error" , message: "<h3>File type not supported</h3>" }';
-                    endif;
-                else:
+                    }
+                } else {
                     echo '{ status: "error" , message: "<h3>File size limit exceeded</h3>" }';
-                endif;
-            else:
+                }
+            } else {
                 echo '{ status: "error" , message: "<h3>Could not load file</h3>" }';
-            endif;
-        endif;
+            }
+        }
     }
 
     /**
@@ -78,10 +80,11 @@ class CSVUpload
      */
     function normalize($term)
     {
-        if (is_array($term)):
-            foreach ($term as $value)
+        if (is_array($term)) {
+            foreach ($term as $value) {
                 return normalize($value);
-        endif;
+            }
+        }
 
         $chars = array(
             'a' => '/à|á|â|ã|ä|å|æ/',

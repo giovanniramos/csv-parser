@@ -1,11 +1,11 @@
 <?php
 // Importing the file
-if (isset($_FILES['uploadfile'])):
+if (isset($_FILES['uploadfile'])) {
     require_once 'classes/CSVUpload.class.php';
 
     new CSVUpload($_FILES['uploadfile']);
     exit;
-endif;
+}
 ?>
 <!DOCTYPE html>
 <html>

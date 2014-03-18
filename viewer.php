@@ -1,6 +1,7 @@
 <?php
+
 // Saving the file imported into the database
-if (isset($_GET['spreadsheet'])):
+if (isset($_GET['spreadsheet'])) {
     require_once 'classes/CSVParser.class.php';
 
     // Riding the spreadsheet import
@@ -22,5 +23,4 @@ if (isset($_GET['spreadsheet'])):
 
     echo '<pre style="height: 150px; overflow: auto;">', print_r($sql_result, true), '</pre>';
     echo '', print_r($cvs_result, true), '';
-endif;
-?>
+}
