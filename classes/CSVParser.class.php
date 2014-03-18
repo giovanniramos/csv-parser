@@ -1,7 +1,8 @@
 <?php
 
 /**
- * CSVParser
+ * CSVParser is a parser that reads CSV files and assembles as a result of 
+ * analyzing a data set to save in a database
  * 
  * @category CSV
  * @package CSVParser
@@ -17,18 +18,22 @@ class CSVParser
     const CSV_LENGTH = 4096;
     const CSV_DELIMITER = ';';
 
-    private $_data = null;
-    private $_table = null;
-    private $_query = null;
+    private $_data = array();
     private $_rows = array();
-    private $_result = array();
     private $_columns = array();
     private $_separator = array();
-    private $_limit = 0;
-    private $_offset = 0;
-    private $_header;
+    private $_header = null;
+    private $_dataset = null;
+    private $_start = 0;
+    private $_end = 0;
 
-    public function csv_import($file = null)
+    /**
+     * Prepares the spreadsheet for reading fields
+     * 
+     * @param string $file
+     * @return string
+     */
+    public function execute($file = null)
     {
         if (($handle = @fopen($file, "r")) === FALSE) {
             exit('<h3>The file "' . $file . '" does not exist!!</h1>');
@@ -36,33 +41,32 @@ class CSVParser
 
         $data = array();
 
-        $this->csv_range($this->_limit, $this->_offset);
+        $this->csv_range($this->_start, $this->_end);
 
         $headline = fgetcsv($handle, self::CSV_LENGTH, self::CSV_DELIMITER);
         foreach ($headline as $title) {
-            $data[0][] = $title = strtoupper(preg_replace('/[^[:alnum:]\s]/', '', $title));
+            $data[0][] = $title = mb_strtoupper(preg_replace('~[^[:alnum:]\s]~', '', $title));
 
             // With a filter of columns
             if (is_array($this->get_csv_headers())) {
-                if ($this->filterHeading($title)):
+                if ($this->filter_heading($title)) {
                     $data[1][] = $title;
-                endif;
+                }
             } else {
                 $data[1][] = $title;
             }
         }
 
-
-        $rows = null;
+        $lines = null;
         $index = 1;
         while (($fileline = fgetcsv($handle, self::CSV_LENGTH, self::CSV_DELIMITER)) !== FALSE) {
             if (
-            // With limit and offset
-                    (($this->_limit != 0 && $this->_offset != 0) && $index >= $this->_limit && $index <= $this->_offset) ||
-                    // With limit and without offset
-                    (($this->_limit != 0 && $this->_offset == 0) && $index <= $this->_limit) ||
-                    // No limits and no offset
-                    ( $this->_limit == 0 && $this->_offset == 0)
+            // With onset and end
+                    (($this->_start != 0 && $this->_end != 0) && $index >= $this->_start && $index <= $this->_end) ||
+                    // With onset and no end
+                    (($this->_start != 0 && $this->_end == 0) && $index <= $this->_start) ||
+                    // Without start and without an end
+                    ( $this->_start == 0 && $this->_end == 0)
             ) {
                 if (!isset($data[1])) {
                     continue;
@@ -72,45 +76,33 @@ class CSVParser
                     $n = array_search($data[1][$k], $data[0]);
                     $v = trim($fileline[$n]);
                     $v = iconv('ISO-8859-1', 'UTF-8', $v);
-                    #$v = mb_strtoupper($v, "UTF-8");
                     $v = str_replace('""', '"', $v);
                     $v = preg_replace("~[\s]+~", " ", $v);
                     $v = preg_replace("~^\"(.*)\"$~sim", "$1", $v);
 
-                    $rows[$data[1][$k]] = empty($v) ? null : $v;
+                    $lines[$data[1][$k]] = empty($v) ? null : $v;
                 }
-                $this->cvs_rows($rows);
+                $this->cvs_rows($lines);
             }
             $index++;
         }
         fclose($handle);
 
-        $this->cvs_data($data);
-
-        return $this;
-    }
-
-    public function csv_table()
-    {
         $dataRows = $this->get_cvs_rows();
         $dataHeaders = $this->get_csv_headers();
-        $dataColumns = $this->get_sql_columns();
+        $dataColumns = $this->get_dba_columns();
         $totalRows = count($dataRows);
         $totalHeaders = count($dataHeaders);
-
 
         $html = '<table class="table table-striped table-bordered table-condensed table-hover">';
         $html.= '<thead>';
         $html.= '<tr>';
         $html.= '<th>&nbsp;</th>';
-        foreach ($dataHeaders as $th => $header) {
+        foreach ($dataHeaders as $header) {
             $html.= '<th>';
-//            $html.= '<label class="checkbox inline"><input name="' . $header[0] . '" id="' . $header[0] . '" value="1" type="checkbox" /></label> ';
-//            $html.= '<label for="' . $header[0] . '">';
             foreach ($header as $title) {
                 $html.= $title . ' ';
             }
-//            $html.= '</label>';
             $html.= '</th>';
         }
         $html.= '</tr>';
@@ -129,38 +121,61 @@ class CSVParser
                 }
                 $html.= '<td>' . $values . '</td>';
 
-                $this->_result[$dataColumns[$j - 1]] = $values;
+                $this->_data[$dataColumns[$j - 1]] = $values;
             }
             $html.= '</tr>';
 
-            $this->result($this->_result);
+            $this->_dataset[] = $this->_data;
         }
         $html.= '</tbody>';
         $html.= '</table>';
 
-        $this->_table = $html;
+        return $html;
     }
 
-    public function execute()
+    /**
+     * Sets the start and end of data capture
+     * 
+     * @param int $start
+     * @param int $end
+     */
+    public function csv_range($start = 0, $end = 0)
     {
-        $this->csv_table();
-
-        return $this;
+        $this->_start = (int) $start;
+        $this->_end = (int) $end;
     }
 
-    public function get_csv_table()
+    /**
+     * Stores spreadsheet rows
+     * 
+     * @param array $rows
+     */
+    private function cvs_rows($rows = null)
     {
-        return $this->_table;
+        $this->_rows[] = $rows;
     }
 
+    /**
+     * Returns spreadsheet rows
+     * 
+     * @return array
+     */
+    private function get_cvs_rows()
+    {
+        return $this->_rows;
+    }
+
+    /**
+     * Sets the headers of the spreadsheet to be stored
+     * 
+     * @param string $header
+     * @param string $separator
+     * @return \CSVParser
+     */
     public function csv_headers($header = null, $separator = null)
     {
-        if (is_null($header)) {
-            return;
-        }
-
-        $header = strtoupper($header);
-        $header = preg_replace('/[^[:alnum:],\s]/', '', $header);
+        $header = mb_strtoupper($header, "UTF-8");
+        $header = preg_replace('~[^[:alnum:],\s]~', '', $header);
         $header = preg_split("~[,\s]+~", $header);
 
         $this->_header[] = $header;
@@ -169,72 +184,82 @@ class CSVParser
         return $this;
     }
 
-    public function get_csv_headers()
+    /**
+     * Returns the header of the spreadsheet
+     * 
+     * @return array
+     */
+    private function get_csv_headers()
     {
         return $this->_header;
     }
 
-    public function filterHeading($header = null)
+    /**
+     * Sets a column in the database with a the preset value
+     * 
+     * @param string $column
+     * @param string $value
+     * @return \CSVParser
+     */
+    public function dba_fusion($column = null, $value = null)
     {
-        $header = $this->in_multiarray($header, $this->_header);
+        $this->_data[$column] = $value;
 
-        return $header;
+        return $this;
     }
 
-    public function csv_range($start = 0, $offset = 0)
-    {
-        $this->_limit = (int) $start;
-        $this->_offset = (int) $offset;
-    }
-
-    public function cvs_data($data = null)
-    {
-        $this->_data = $data;
-    }
-
-    public function cvs_rows($rows = null)
-    {
-        $this->_rows[] = $rows;
-    }
-
-    public function get_cvs_rows()
-    {
-        return $this->_rows;
-    }
-
-    public function sql_column($column = null)
+    /**
+     * Sets a column in the database that will store the data from a spreadsheet column
+     * 
+     * @param string $column
+     * @return \CSVParser
+     */
+    public function dba_column($column = null)
     {
         $this->_columns[] = $column;
 
         return $this;
     }
 
-    public function get_sql_columns()
+    /**
+     * Returns the columns defined in the database to receive the spreadsheet values
+     * 
+     * @return array
+     */
+    private function get_dba_columns()
     {
         return $this->_columns;
     }
 
-    public function result($values = null)
+    /**
+     * Returns a dataset to save in the database
+     * 
+     * @return array
+     */
+    public function get_dataset()
     {
-        $this->_query[] = $values;
+        return $this->_dataset;
     }
 
-    public function get_result()
+    /**
+     * Filter containing the user-defined titles
+     * 
+     * @param string $title
+     * @return boolean
+     */
+    private function filter_heading($title = null)
     {
-        return $this->_query;
+        return $this->in_multiarray($title, $this->_header);
     }
 
-    public function sql_fusion($column = null, $header = null)
-    {
-        if (is_null($column) || is_null($header)) {
-            return;
-        }
-
-        $header = mb_strtoupper($header, "UTF-8");
-        $this->_result[$column] = $header;
-    }
-
-    public function in_multiarray($needle, $haystack)
+    /**
+     * Checks if a value exists in an multidimensional array
+     * 
+     * @param string $needle
+     * @param array $haystack
+     * @return boolean
+     */
+    private function in_multiarray($needle, $haystack)
     {
         $top = sizeof($haystack) - 1;
         $bottom = 0;
@@ -254,10 +279,13 @@ class CSVParser
         return false;
     }
 
+    /**
+     * Magic method
+     */
     public function __get($key)
     {
-        if (array_key_exists($key, $this->_result)) {
-            return $this->_result[$key];
+        if (array_key_exists($key, $this->_data)) {
+            return $this->_data[$key];
         }
     }
 
