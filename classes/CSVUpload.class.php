@@ -4,7 +4,7 @@
  * CSVUpload
  * 
  * @category CSV
- * @package CSVParser
+ * @package CSV-Parser
  * @author Giovanni Ramos <giovannilauro@gmail.com>
  * @copyright 2012-2014, Giovanni Ramos
  * @since 2012-09-27 
@@ -78,7 +78,7 @@ class CSVUpload
      * @param string $term The input string
      * @return string Returns the converted string
      */
-    function normalize($term)
+    public function normalize($term)
     {
         if (is_array($term)) {
             foreach ($term as $value) {

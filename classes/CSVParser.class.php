@@ -1,11 +1,11 @@
 <?php
 
 /**
- * CSVParser is a parser that reads CSV files and assembles as a result of 
+ * CSV-Parser is a parser that reads CSV files and assembles as a result of 
  * analyzing a data set to save in a database
  * 
  * @category CSV
- * @package CSVParser
+ * @package CSV-Parser
  * @author Giovanni Ramos <giovannilauro@gmail.com>
  * @copyright 2012-2014, Giovanni Ramos
  * @since 2012-09-27 

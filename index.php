@@ -109,7 +109,7 @@ if (isset($_GET['save_data'])) {
 <html>
     <head>
         <meta charset="UTF-8" />
-        <title>CSVParser</title>
+        <title>CSV-Parser</title>
         <!-- Twitter Bootstrap -->
         <link rel="stylesheet" href="vendor/twitter-bootstrap/css/bootstrap.min.css" media="screen" />
     </head>
